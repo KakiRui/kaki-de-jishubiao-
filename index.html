@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>kaki记数工具</title>
+    <title>kaki记数工具-禁二传</title>
     <style>
         :root {
             --m-bg: #f5f3f0;
@@ -16,7 +16,6 @@
             --m-danger: #b09c9c;
         }
 
-        /* 允许整页滚动以适配不滚动的顾客列表 */
         body { 
             font-family: -apple-system, sans-serif; 
             margin: 0; padding: 12px; 
@@ -27,7 +26,6 @@
             flex-direction: column;
         }
         
-        /* 顶部工具栏 - 经典卡片感 */
         .toolbar { 
             background: #ffffff; padding: 18px; border-radius: 15px; 
             box-shadow: 0 4px 15px rgba(90,90,90,0.05); 
@@ -42,38 +40,27 @@
         }
         .button-group button { flex: 1; }
 
-        .main-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+        .main-container { display: flex; flex-direction: column; gap: 15px; }
 
-        /* 数字表：加长并保持独立滚动 */
         .pool-box { 
             background: white; padding: 18px; border-radius: 15px; 
             box-shadow: 0 4px 12px rgba(90,90,90,0.03);
-            display: flex;
-            flex-direction: column;
-            height: 55vh; /* 设置为占据屏幕一半以上高度 */
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            height: 55vh; overflow: hidden;
+            position: relative;
         }
 
         .scroll-area {
-            overflow-y: auto;
-            flex-grow: 1;
-            margin-top: 10px;
-            padding-right: 5px;
+            overflow-y: auto; flex-grow: 1; margin-top: 10px; padding-right: 5px;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* 顾客清单：不要独立滚动，自然延伸 */
         .cust-box { 
             background: white; padding: 18px; border-radius: 15px; 
-            box-shadow: 0 4px 12px rgba(90,90,90,0.03);
-            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(90,90,90,0.03); margin-bottom: 20px;
         }
 
-        /* 元素样式保持不变 */
+        /* 元素样式 */
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 10px; }
         .num-card { 
             height: 48px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
@@ -81,7 +68,7 @@
             border-radius: 8px; cursor: pointer; transition: 0.2s; background: rgba(156, 177, 192, 0.05);
         }
         .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.05); z-index: 10; }
-        .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; pointer-events: none; opacity: 0.7; }
+        .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; cursor: pointer; opacity: 0.7; }
 
         .customer-card { 
             background: #ffffff; border: 1.5px solid var(--m-border); border-radius: 12px; 
@@ -92,18 +79,28 @@
         .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .cust-info { display: flex; align-items: center; gap: 8px; }
         .cust-name { font-weight: bold; color: var(--m-text); }
-        .cust-count { background: var(--m-blue-main); color: white; border-radius: 12px; padding: 1px 8px; font-size: 11px; }
         
-        .tag-box { display: flex; flex-wrap: wrap; gap: 6px; }
+        /* 优化点3：张数颜色改为奶黄色区分 */
+        .cust-count { background: var(--m-yellow-act); color: #7c6d4d; border: 1px solid #d1bf96; border-radius: 12px; padding: 1px 8px; font-size: 11px; }
+        
+        /* 批次分隔样式 */
+        .batch-sep { color: var(--m-danger); font-weight: bold; margin: 0 4px; font-size: 14px; align-self: center; }
+
+        .tag-box { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .tag { background: var(--m-blue-main); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+
+        /* 功能按钮美化 */
+        .copy-btn { font-size: 11px; background: #f0f0f0; border-radius: 4px; padding: 2px 6px; cursor: pointer; color: #888; border: 1px solid #ddd; }
+        .copy-btn:active { background: #e0e0e0; }
 
         input { padding: 10px; border: 1px solid var(--m-border); border-radius: 8px; font-size: 14px; background: #fffcf9; }
         button { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .btn-blue-outline { background: transparent; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); }
         .btn-green { background: var(--m-green-main); color: white; }
+        
         #statusMsg { background: var(--m-yellow-act); padding: 10px; border-radius: 8px; color: #7c6d4d; font-size: 13px; margin-bottom: 12px; text-align: center; font-weight: 500; border: 1px solid #d1bf96; }
         
-        h4 { color: #8a8a8a; font-size: 16px; margin: 0; }
+        h4 { color: #8a8a8a; font-size: 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -128,7 +125,10 @@
 
 <div class="main-container">
     <div class="section-box pool-box">
-        <h4>🔢 数字表 （多选模式)</h4>
+        <h4>
+            <span>🔢 数字表 (多选模式)</span>
+            <span class="copy-btn" onclick="copyRemaining()">复制剩余号码</span>
+        </h4>
         <div class="scroll-area">
             <div id="numberGrid" class="grid"></div>
         </div>
@@ -144,6 +144,43 @@
     let customers = []; 
     let selectedNums = [];
 
+    // 辅助函数：一键复制文本
+    function copyText(text) {
+        const textarea = document.createElement("textarea");
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+        alert("已复制到剪贴板！");
+    }
+
+    // 优化点1：复制剩余号码
+    function copyRemaining() {
+        const total = parseInt(document.getElementById('totalNum').value) || 0;
+        const soldNums = customers.flatMap(c => c.nums.flat());
+        let remaining = [];
+        for(let i=1; i<=total; i++) {
+            if(!soldNums.includes(i)) remaining.push(i);
+        }
+        if(remaining.length === 0) return alert("已经全部卖完啦！");
+        copyText(`剩余号码 [${remaining.length}个]：\n${remaining.join(', ')}`);
+    }
+
+    // 优化点2：复制单名顾客号码
+    function copyCustomerNums(idx) {
+        const c = customers[idx];
+        if(c.nums.length === 0) return;
+        const formatted = c.nums.map(batch => batch.join(' ')).join(' | ');
+        copyText(`👤 ${c.name} 成功扣到：\n${formatted}`);
+    }
+
+    // 优化点5：点击已售数字查看拥有者
+    function showOwner(num) {
+        const owner = customers.find(c => c.nums.flat().includes(num));
+        if(owner) alert(`这个号码属于：${owner.name}`);
+    }
+
     function initSystem() {
         if(confirm("确定清空所有数据吗？")) { customers = []; selectedNums = []; renderAll(); }
     }
@@ -156,7 +193,7 @@
         const input = document.getElementById('custInput');
         const name = input.value.trim();
         if(!name) return;
-        customers.unshift({ name: name, nums: [] });
+        customers.unshift({ name: name, nums: [] }); // nums 现在是二维数组 [ [1,2], [5,6] ]
         input.value = '';
         renderAll();
     }
@@ -168,16 +205,22 @@
         renderAll();
     }
 
+    // 优化点4：分批记录逻辑
     function bindToCustomer(index) {
         if(selectedNums.length === 0) return;
-        customers[index].nums.push(...selectedNums);
-        customers[index].nums.sort((a,b) => a-b);
+        // 每一批内部还是进行升序排列
+        const newBatch = [...selectedNums].sort((a,b) => a-b);
+        customers[index].nums.push(newBatch);
         selectedNums = [];
         renderAll();
     }
 
-    function unbindNumber(custIdx, num) {
-        customers[custIdx].nums = customers[custIdx].nums.filter(n => n !== num);
+    function unbindNumber(custIdx, batchIdx, num) {
+        customers[custIdx].nums[batchIdx] = customers[custIdx].nums[batchIdx].filter(n => n !== num);
+        // 如果某一批被删空了，则移除该批次
+        if(customers[custIdx].nums[batchIdx].length === 0) {
+            customers[custIdx].nums.splice(batchIdx, 1);
+        }
         renderAll();
     }
 
@@ -191,7 +234,7 @@
         const msg = document.getElementById('statusMsg');
         if(selectedNums.length > 0) {
             msg.style.display = 'block';
-            msg.innerHTML = `🎯 已选中 [ ${selectedNums.join(', ')} ]，请点选下方人名`;
+            msg.innerHTML = `🎯 已选中 [ ${selectedNums.join(', ')} ]，点选下方人名绑定`;
         } else {
             msg.style.display = 'none';
         }
@@ -200,7 +243,7 @@
     function renderGrid() {
         const grid = document.getElementById('numberGrid');
         const total = parseInt(document.getElementById('totalNum').value) || 0;
-        const soldNums = customers.flatMap(c => c.nums);
+        const soldNums = customers.flatMap(c => c.nums.flat());
         grid.innerHTML = '';
         for(let i=1; i<=total; i++) {
             const div = document.createElement('div');
@@ -208,7 +251,12 @@
             const isSelected = selectedNums.includes(i);
             div.className = `num-card ${isSold ? 'sold' : ''} ${isSelected ? 'selected' : ''}`;
             div.innerText = i;
-            if(!isSold) div.onclick = () => selectNumber(i);
+            if(!isSold) {
+                div.onclick = () => selectNumber(i);
+            } else {
+                // 优化点5：点击已售出的数字显示拥有者
+                div.onclick = () => showOwner(i);
+            }
             grid.appendChild(div);
         }
     }
@@ -222,12 +270,27 @@
             const card = document.createElement('div');
             card.className = `customer-card ${selectedNums.length > 0 ? 'can-receive' : ''}`;
             if(selectedNums.length > 0) card.onclick = () => bindToCustomer(cIdx);
-            let tagsHtml = c.nums.map(n => `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${n})">${n}</span>`).join('');
+            
+            // 优化点4：分批渲染逻辑
+            let tagsHtml = '';
+            c.nums.forEach((batch, bIdx) => {
+                const batchHtml = batch.map(n => 
+                    `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${bIdx}, ${n})">${n}</span>`
+                ).join('');
+                tagsHtml += batchHtml;
+                if(bIdx < c.nums.length - 1) {
+                    tagsHtml += `<span class="batch-sep">|</span>`;
+                }
+            });
+
+            const totalCount = c.nums.flat().length;
+
             card.innerHTML = `
                 <div class="cust-header">
                     <div class="cust-info">
                         <span class="cust-name">👤 ${c.name}</span>
-                        <span class="cust-count">${c.nums.length}</span>
+                        <span class="cust-count">${totalCount} 张</span>
+                        <span class="copy-btn" onclick="event.stopPropagation(); copyCustomerNums(${cIdx})">复制结果</span>
                     </div>
                     <span style="color:#b09c9c; font-size:11px;" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除</span>
                 </div>
