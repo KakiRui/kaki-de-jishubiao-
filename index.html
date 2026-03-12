@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>kaki记数工具-禁二传m</title>
+    <title>kaki记数表-禁二传m</title>
     <style>
         :root {
             --m-bg: #f5f3f0;
@@ -50,8 +50,9 @@
             position: relative;
         }
 
+        /* 修复点 1: 增加 padding-top，防止第一行数字的气泡被标题挡住 */
         .scroll-area {
-            overflow-y: auto; flex-grow: 1; margin-top: 10px; padding-right: 5px;
+            overflow-y: auto; flex-grow: 1; margin-top: 10px; padding: 30px 5px 5px 5px; 
             -webkit-overflow-scrolling: touch;
         }
 
@@ -72,18 +73,33 @@
         .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.05); z-index: 10; }
         .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; cursor: pointer; opacity: 0.7; }
 
-        /* 轻量气泡对话框样式 */
+        /* 修复点 2: 气泡样式升级，解决遮挡问题 */
         .owner-tip {
-            position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px;
-            font-size: 11px; white-space: nowrap; pointer-events: none; z-index: 100;
-            animation: fadeIn 0.2s ease;
+            position: absolute; 
+            bottom: 125%; /* 稍微拉高，避免压到边框线 */
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); /* 稍微加深一点颜色更清晰 */
+            color: white; 
+            padding: 5px 10px; 
+            border-radius: 6px;
+            font-size: 12px; 
+            white-space: nowrap; 
+            pointer-events: none; 
+            z-index: 9999; /* 强制最高层级 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* 增加投影，更有质感 */
+            animation: fadeInPop 0.2s ease-out;
         }
+        /* 气泡小尖角 */
         .owner-tip::after {
             content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-            border: 5px solid transparent; border-top-color: rgba(0,0,0,0.7);
+            border: 6px solid transparent; border-top-color: rgba(0,0,0,0.8);
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(5px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+        
+        @keyframes fadeInPop { 
+            from { opacity: 0; transform: translateX(-50%) translateY(5px) scale(0.9); } 
+            to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 
+        }
 
         .customer-card { 
             background: #ffffff; border: 1.5px solid var(--m-border); border-radius: 12px; 
@@ -153,7 +169,7 @@
 <script>
     let customers = []; 
     let selectedNums = [];
-    let tipTimer = null; // 用于控制气泡自动消失
+    let tipTimer = null;
 
     function copyText(text) {
         const textarea = document.createElement("textarea");
@@ -176,7 +192,6 @@
         copyText(`剩余号码 [${remaining.length}个]：\n${remaining.join(', ')}`);
     }
 
-    // 优化点：修改为可爱的文案
     function copyCustomerNums(idx) {
         const c = customers[idx];
         if(c.nums.length === 0) return;
@@ -184,14 +199,11 @@
         copyText(`${c.name}的成绩单(  •̀ω•́  )ｷﾘｯ\n${formatted}`);
     }
 
-    // 优化点：气泡提示逻辑
     function showOwnerTip(event, num) {
         const owner = customers.find(c => c.nums.flat().includes(num));
         if(!owner) return;
         
-        // 移除现有的所有气泡
-        const oldTips = document.querySelectorAll('.owner-tip');
-        oldTips.forEach(t => t.remove());
+        document.querySelectorAll('.owner-tip').forEach(t => t.remove());
 
         const tip = document.createElement('div');
         tip.className = 'owner-tip';
@@ -199,18 +211,12 @@
         
         event.currentTarget.appendChild(tip);
 
-        // 2秒后自动消失
         clearTimeout(tipTimer);
-        tipTimer = setTimeout(() => tip.remove(), 2000);
+        tipTimer = setTimeout(() => { if(tip) tip.remove(); }, 2000);
     }
 
-    function initSystem() {
-        if(confirm("确定清空所有数据吗？")) { customers = []; selectedNums = []; renderAll(); }
-    }
-
-    function resetSoldStatus() {
-        if(confirm("确定收回所有数字吗？")) { customers.forEach(c => c.nums = []); selectedNums = []; renderAll(); }
-    }
+    function initSystem() { if(confirm("确定清空所有数据吗？")) { customers = []; selectedNums = []; renderAll(); } }
+    function resetSoldStatus() { if(confirm("确定收回所有数字吗？")) { customers.forEach(c => c.nums = []); selectedNums = []; renderAll(); } }
 
     function addCustomer() {
         const input = document.getElementById('custInput');
@@ -242,9 +248,7 @@
         renderAll();
     }
 
-    function deleteCustomer(idx) {
-        if(confirm(`删除顾客 ${customers[idx].name}？`)) { customers.splice(idx, 1); renderAll(); }
-    }
+    function deleteCustomer(idx) { if(confirm(`删除顾客 ${customers[idx].name}？`)) { customers.splice(idx, 1); renderAll(); } }
 
     function renderAll() {
         renderGrid();
@@ -272,7 +276,6 @@
             if(!isSold) {
                 div.onclick = () => selectNumber(i);
             } else {
-                // 点击已售数字显示气泡
                 div.onclick = (e) => showOwnerTip(e, i);
             }
             grid.appendChild(div);
