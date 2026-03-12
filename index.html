@@ -117,13 +117,12 @@
         #statusMsg { background: var(--m-yellow-act); padding: 10px; border-radius: 8px; color: #7c6d4d; font-size: 13px; margin-bottom: 12px; text-align: center; font-weight: 500; border: 1px solid #d1bf96; }
         h4 { color: #8a8a8a; font-size: 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; }
 
-        /* 修改：更紧凑的水印样式 */
         .footer-credit {
             text-align: center;
             font-size: 10px;
             color: #d1cdc8;
-            margin-top: 15px; /* 缩短与上方的距离 */
-            margin-bottom: 5px; /* 缩短底部留白 */
+            margin-top: 15px;
+            margin-bottom: 5px;
             letter-spacing: 0.5px;
             font-style: italic;
             opacity: 0.8;
@@ -243,10 +242,14 @@
         renderAll();
     }
 
+    // 重点修改：增加了确认逻辑
     function unbindNumber(custIdx, batchIdx, num) {
-        customers[custIdx].nums[batchIdx] = customers[custIdx].nums[batchIdx].filter(n => n !== num);
-        if(customers[custIdx].nums[batchIdx].length === 0) customers[custIdx].nums.splice(batchIdx, 1);
-        renderAll();
+        const customerName = customers[custIdx].name;
+        if(confirm(`确定要删除 【${customerName}】 的数字 【${num}】 吗？`)) {
+            customers[custIdx].nums[batchIdx] = customers[custIdx].nums[batchIdx].filter(n => n !== num);
+            if(customers[custIdx].nums[batchIdx].length === 0) customers[custIdx].nums.splice(batchIdx, 1);
+            renderAll();
+        }
     }
 
     function deleteCustomer(idx) { if(confirm(`删除顾客 ${customers[idx].name}？`)) { customers.splice(idx, 1); renderAll(); } }
