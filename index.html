@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>kaki记数表-禁二传</title>
+    <title>kaki记数表-禁止二传</title>
     <style>
         :root {
             --m-bg: #f5f3f0;
@@ -50,7 +50,6 @@
             position: relative;
         }
 
-        /* 修复点 1: 增加 padding-top，防止第一行数字的气泡被标题挡住 */
         .scroll-area {
             overflow-y: auto; flex-grow: 1; margin-top: 10px; padding: 30px 5px 5px 5px; 
             -webkit-overflow-scrolling: touch;
@@ -63,7 +62,6 @@
 
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 10px; position: relative; }
         
-        /* 数字卡片样式 */
         .num-card { 
             height: 48px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
             display: flex; align-items: center; justify-content: center; font-weight: bold;
@@ -73,24 +71,22 @@
         .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.05); z-index: 10; }
         .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; cursor: pointer; opacity: 0.7; }
 
-        /* 修复点 2: 气泡样式升级，解决遮挡问题 */
         .owner-tip {
             position: absolute; 
-            bottom: 125%; /* 稍微拉高，避免压到边框线 */
+            bottom: 125%; 
             left: 50%; 
             transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); /* 稍微加深一点颜色更清晰 */
+            background: rgba(0,0,0,0.8); 
             color: white; 
             padding: 5px 10px; 
             border-radius: 6px;
             font-size: 12px; 
             white-space: nowrap; 
             pointer-events: none; 
-            z-index: 9999; /* 强制最高层级 */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* 增加投影，更有质感 */
+            z-index: 9999; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             animation: fadeInPop 0.2s ease-out;
         }
-        /* 气泡小尖角 */
         .owner-tip::after {
             content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
             border: 6px solid transparent; border-top-color: rgba(0,0,0,0.8);
@@ -106,27 +102,30 @@
             padding: 15px; margin-bottom: 12px; transition: 0.3s;
         }
         .customer-card.can-receive { border-color: var(--m-green-main); background: var(--m-green-rec); cursor: pointer; }
-        
         .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .cust-info { display: flex; align-items: center; gap: 8px; }
         .cust-name { font-weight: bold; color: var(--m-text); }
         .cust-count { background: var(--m-yellow-act); color: #7c6d4d; border: 1px solid #d1bf96; border-radius: 12px; padding: 1px 8px; font-size: 11px; }
-        
         .batch-sep { color: var(--m-danger); font-weight: bold; margin: 0 4px; font-size: 14px; align-self: center; }
-
         .tag-box { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .tag { background: var(--m-blue-main); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; }
-
         .copy-btn { font-size: 11px; background: #f0f0f0; border-radius: 4px; padding: 2px 6px; cursor: pointer; color: #888; border: 1px solid #ddd; }
-
         input { padding: 10px; border: 1px solid var(--m-border); border-radius: 8px; font-size: 14px; background: #fffcf9; }
         button { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
         .btn-blue-outline { background: transparent; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); }
         .btn-green { background: var(--m-green-main); color: white; }
-        
         #statusMsg { background: var(--m-yellow-act); padding: 10px; border-radius: 8px; color: #7c6d4d; font-size: 13px; margin-bottom: 12px; text-align: center; font-weight: 500; border: 1px solid #d1bf96; }
-        
         h4 { color: #8a8a8a; font-size: 16px; margin: 0; display: flex; justify-content: space-between; align-items: center; }
+
+        /* 水印字体样式 */
+        .footer-credit {
+            text-align: center;
+            font-size: 11px;
+            color: #c0bdb8;
+            margin: 20px 0 30px 0;
+            letter-spacing: 1px;
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -163,6 +162,10 @@
     <div class="cust-box">
         <h4 style="margin-bottom:15px;">👥 顾客清单</h4>
         <div id="customerList"></div>
+        
+        <div class="footer-credit">
+            @Kaki 内部交流版本 禁止二传
+        </div>
     </div>
 </div>
 
@@ -202,15 +205,11 @@
     function showOwnerTip(event, num) {
         const owner = customers.find(c => c.nums.flat().includes(num));
         if(!owner) return;
-        
         document.querySelectorAll('.owner-tip').forEach(t => t.remove());
-
         const tip = document.createElement('div');
         tip.className = 'owner-tip';
         tip.innerText = `拥有者: ${owner.name}`;
-        
         event.currentTarget.appendChild(tip);
-
         clearTimeout(tipTimer);
         tipTimer = setTimeout(() => { if(tip) tip.remove(); }, 2000);
     }
