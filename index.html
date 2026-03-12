@@ -8,138 +8,176 @@
         :root {
             --m-bg: #f5f3f0;
             --m-text: #5a5a5a;
-            --m-border: #dcd7cf;
+            --m-border: #eeeae6;
             --m-blue-main: #9cb1c0;
             --m-green-main: #a3b09c;
             --m-yellow-act: #e2d2ae;
-            --m-green-rec: #dce0d9;
+            --m-green-rec: #f0f2ee;
             --m-danger: #b09c9c;
         }
 
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background: var(--m-bg); color: var(--m-text); }
-        
-        /* 顶部悬浮控制栏 - 方便滚动时操作 */
-        .toolbar { 
-            background: #ffffff; padding: 15px; border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px;
-            position: sticky; top: 10px; z-index: 100;
+        /* 基础布局优化 */
+        body { 
+            font-family: -apple-system, sans-serif; 
+            margin: 0; padding: 12px; 
+            background: var(--m-bg); 
+            color: var(--m-text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow: hidden; /* 防止整页滚动，改为模块滚动 */
         }
         
-        .flex-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        /* 顶部静态工具栏 */
+        .toolbar { 
+            background: #ffffff; padding: 16px; border-radius: 16px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+            margin-bottom: 12px;
+            flex-shrink: 0; /* 保持高度固定 */
+        }
         
-        /* 搜索框美化 */
-        #searchBar { background: #fffcf9; border: 1.5px solid var(--m-green-main); }
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        
+        /* 搜索和输入框美化 */
+        input { 
+            padding: 10px; border: 1.5px solid var(--m-border); border-radius: 10px; 
+            font-size: 14px; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--m-blue-main); }
 
-        /* 按钮组 */
-        .button-group { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid #eee; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 14px; }
+        /* 按钮美化 */
+        button { 
+            padding: 10px 14px; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s;
+        }
         .btn-green { background: var(--m-green-main); color: white; }
-        .btn-outline { background: transparent; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); }
-        .btn-danger { background: transparent; border: 1px solid var(--m-danger); color: var(--m-danger); }
+        .btn-outline { background: #fff; border: 1.5px solid var(--m-border); color: #888; flex: 1; }
 
-        .container { display: flex; gap: 15px; flex-direction: column; }
-        @media (min-width: 768px) { .container { flex-direction: row; align-items: flex-start; } }
+        /* 模块容器 */
+        .main-content { 
+            display: flex; flex-direction: column; gap: 12px; flex-grow: 1; 
+            overflow: hidden; /* 关键：父级不滚动 */
+        }
 
-        /* 数字区 */
-        .section-box { background: white; padding: 15px; border-radius: 12px; flex: 1; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 8px; margin-top: 10px; }
+        /* 独立滚动模块样式 */
+        .scroll-section { 
+            background: white; border-radius: 16px; padding: 15px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            overflow: hidden; 
+        }
+
+        /* 数字池模块 - 占用更多空间 */
+        .pool-section { flex: 3; } 
+        /* 顾客列表模块 - 占用适中空间 */
+        .cust-section { flex: 2; }
+
+        /* 内部滚动区域 */
+        .inner-scroll { 
+            overflow-y: auto; 
+            flex-grow: 1;
+            padding-right: 4px;
+            margin-top: 10px;
+            -webkit-overflow-scrolling: touch; /* 优化移动端滚动 */
+        }
+
+        /* 数字网格 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 10px; }
         
         .num-card { 
-            height: 45px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
+            height: 46px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
             display: flex; align-items: center; justify-content: center; font-weight: bold;
-            border-radius: 6px; cursor: pointer; transition: 0.1s; background: rgba(156,177,192,0.05);
+            border-radius: 10px; cursor: pointer; background: rgba(156,177,192,0.03);
         }
-        .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.1); box-shadow: 0 0 8px rgba(226,210,174,0.6); }
-        .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; pointer-events: none; opacity: 0.5; }
+        .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.05); }
+        .num-card.sold { background: #f0f0f0; border-color: #e0e0e0; color: #ccc; text-decoration: line-through; pointer-events: none; }
 
-        /* 顾客区 */
-        .customer-area { flex: 0 0 350px; }
+        /* 顾客卡片 */
         .customer-card { 
-            background: white; border: 1.5px solid var(--m-border); border-radius: 10px; 
+            border: 1.5px solid var(--m-border); border-radius: 12px; 
             padding: 12px; margin-bottom: 10px; transition: 0.2s;
         }
-        .customer-card.can-receive { border-color: var(--m-green-main); background: var(--m-green-rec); cursor: pointer; }
+        .customer-card.can-receive { border-color: var(--m-green-main); background: var(--m-green-rec); }
         
         .cust-header { display: flex; justify-content: space-between; align-items: center; }
-        .cust-info { display: flex; align-items: center; gap: 8px; }
-        .cust-count { background: var(--m-blue-main); color: white; border-radius: 12px; padding: 1px 7px; font-size: 11px; }
+        .cust-name { font-weight: bold; font-size: 15px; }
+        .cust-count { background: var(--m-blue-main); color: white; border-radius: 8px; padding: 2px 8px; font-size: 12px; }
         
-        .tag-box { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-        .tag { background: var(--m-blue-main); color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; }
-        .tag:hover { background: var(--m-danger); }
+        .tag-box { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .tag { background: var(--m-blue-main); color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; }
 
-        input { padding: 10px; border: 1px solid var(--m-border); border-radius: 8px; font-size: 14px; }
-        #statusMsg { background: var(--m-yellow-act); padding: 10px; border-radius: 8px; color: #7c6d4d; font-size: 13px; margin-bottom: 10px; text-align: center; }
+        h4 { margin: 0; font-size: 15px; color: #999; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 状态条 */
+        #statusMsg { 
+            background: var(--m-yellow-act); color: #7c6d4d; 
+            text-align: center; font-size: 13px; padding: 8px; 
+            border-radius: 10px; margin-bottom: 10px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
     <div class="flex-row">
-        <input type="text" id="custInput" placeholder="加人：输入名字" style="flex: 2;">
-        <button class="btn-green" onclick="addCustomer()" style="flex: 1;">确认添加</button>
+        <input type="text" id="custInput" placeholder="👤 添加顾客姓名" style="flex: 1;">
+        <button class="btn-green" onclick="addCustomer()">确认添加</button>
     </div>
     <div class="flex-row">
-        <input type="text" id="searchBar" placeholder="🔍 搜人：输入关键字快速过滤" style="flex: 1;" oninput="renderCustomers()">
+        <input type="text" id="searchBar" placeholder="🔍 快速搜索顾客..." style="flex: 1;" oninput="renderCustomers()">
     </div>
-    <div class="button-group">
-        <button class="btn-outline" onclick="resetSoldStatus()">重置数字表</button>
-        <button class="btn-danger" onclick="initSystem()">清空所有数据</button>
+    <div class="flex-row">
+        <button class="btn-outline" onclick="resetSoldStatus()">重置表</button>
+        <button class="btn-outline" style="color: var(--m-danger); border-color: #f0e6e6;" onclick="initSystem()">全清空</button>
     </div>
 </div>
 
 <div id="statusMsg" style="display:none;"></div>
 
-<div class="container">
-    <div class="section-box">
-        <h4>🔢 数字池 (多选模式：可连点多个数字)</h4>
-        <input type="number" id="totalNum" value="50" style="width: 60px;" onchange="renderGrid()"> 
-        <small>个编号</small>
-        <div id="numberGrid" class="grid"></div>
+<div class="main-content">
+    <div class="scroll-section pool-section">
+        <h4>🔢 数字池 
+            <input type="number" id="totalNum" value="50" style="width: 50px; padding: 2px; height: 24px; border-radius: 6px;" onchange="renderGrid()">
+        </h4>
+        <div class="inner-scroll">
+            <div id="numberGrid" class="grid"></div>
+        </div>
     </div>
 
-    <div class="customer-area">
-        <h4>👥 顾客列表</h4>
-        <div id="customerList"></div>
+    <div class="scroll-section cust-section">
+        <h4>👥 顾客清单</h4>
+        <div class="inner-scroll">
+            <div id="customerList"></div>
+        </div>
     </div>
 </div>
 
 <script>
     let customers = []; 
-    let selectedNums = []; // 支持多选
+    let selectedNums = [];
 
     function initSystem() {
-        if(confirm("警告：这将清空所有顾客和记录！确定吗？")) {
-            customers = [];
-            selectedNums = [];
-            renderAll();
-        }
+        if(confirm("确定清空所有数据吗？")) { customers = []; selectedNums = []; renderAll(); }
     }
 
     function resetSoldStatus() {
-        if(confirm("确定收回所有数字吗？顾客名字将保留。")) {
-            customers.forEach(c => c.nums = []);
-            selectedNums = [];
-            renderAll();
-        }
+        if(confirm("确定收回所有数字吗？")) { customers.forEach(c => c.nums = []); selectedNums = []; renderAll(); }
     }
 
     function addCustomer() {
         const input = document.getElementById('custInput');
         const name = input.value.trim();
         if(!name) return;
-        customers.unshift({ name: name, nums: [] }); // 新加的人排在最前面，方便操作
+        customers.unshift({ name: name, nums: [] });
         input.value = '';
         renderAll();
     }
 
     function selectNumber(num) {
         const idx = selectedNums.indexOf(num);
-        if (idx > -1) {
-            selectedNums.splice(idx, 1);
-        } else {
-            selectedNums.push(num);
-        }
+        if (idx > -1) selectedNums.splice(idx, 1);
+        else selectedNums.push(num);
         renderAll();
     }
 
@@ -157,10 +195,7 @@
     }
 
     function deleteCustomer(idx) {
-        if(confirm(`删除顾客 ${customers[idx].name}？`)) {
-            customers.splice(idx, 1);
-            renderAll();
-        }
+        if(confirm(`删除顾客 ${customers[idx].name}？`)) { customers.splice(idx, 1); renderAll(); }
     }
 
     function renderAll() {
@@ -169,7 +204,7 @@
         const msg = document.getElementById('statusMsg');
         if(selectedNums.length > 0) {
             msg.style.display = 'block';
-            msg.innerHTML = `已选中 <b>${selectedNums.join(', ')}</b> 号，点下方人名绑定。`;
+            msg.innerHTML = `已选择 [ ${selectedNums.join(', ')} ]，请点选下方顾客`;
         } else {
             msg.style.display = 'none';
         }
@@ -180,7 +215,6 @@
         const total = parseInt(document.getElementById('totalNum').value) || 0;
         const soldNums = customers.flatMap(c => c.nums);
         grid.innerHTML = '';
-        
         for(let i=1; i<=total; i++) {
             const div = document.createElement('div');
             const isSold = soldNums.includes(i);
@@ -196,33 +230,22 @@
         const list = document.getElementById('customerList');
         const searchTxt = document.getElementById('searchBar').value.toLowerCase();
         list.innerHTML = '';
-        
         customers.forEach((c, cIdx) => {
-            // 搜索过滤逻辑
             if(searchTxt && !c.name.toLowerCase().includes(searchTxt)) return;
-
             const card = document.createElement('div');
             card.className = `customer-card ${selectedNums.length > 0 ? 'can-receive' : ''}`;
             if(selectedNums.length > 0) card.onclick = () => bindToCustomer(cIdx);
-            
-            let tagsHtml = c.nums.map(n => 
-                `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${n})">${n}</span>`
-            ).join('');
-
+            let tagsHtml = c.nums.map(n => `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${n})">${n}</span>`).join('');
             card.innerHTML = `
                 <div class="cust-header">
-                    <div class="cust-info">
-                        <span class="cust-name">👤 ${c.name}</span>
-                        <span class="cust-count">${c.nums.length}</span>
-                    </div>
-                    <span style="color:#b09c9c; font-size:11px;" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除</span>
+                    <span class="cust-name">👤 ${c.name} <span class="cust-count">${c.nums.length}</span></span>
+                    <span style="color:#ccc; font-size:11px;" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除</span>
                 </div>
-                <div class="tag-box">${tagsHtml || '<small style="color:#ddd">空</small>'}</div>
+                <div class="tag-box">${tagsHtml || '<small style="color:#eee">暂无编号</small>'}</div>
             `;
             list.appendChild(card);
         });
     }
-
     renderAll();
 </script>
 </body>
