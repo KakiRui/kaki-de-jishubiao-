@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>kaki记数工具-禁二传</title>
+    <title>kaki记数工具-禁二传m</title>
     <style>
         :root {
             --m-bg: #f5f3f0;
@@ -60,15 +60,30 @@
             box-shadow: 0 4px 12px rgba(90,90,90,0.03); margin-bottom: 20px;
         }
 
-        /* 元素样式 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 10px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 10px; position: relative; }
+        
+        /* 数字卡片样式 */
         .num-card { 
             height: 48px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
             display: flex; align-items: center; justify-content: center; font-weight: bold;
             border-radius: 8px; cursor: pointer; transition: 0.2s; background: rgba(156, 177, 192, 0.05);
+            position: relative;
         }
         .num-card.selected { background: var(--m-yellow-act); border-color: #d1bf96; color: #7c6d4d; transform: scale(1.05); z-index: 10; }
         .num-card.sold { background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; text-decoration: line-through; cursor: pointer; opacity: 0.7; }
+
+        /* 轻量气泡对话框样式 */
+        .owner-tip {
+            position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px;
+            font-size: 11px; white-space: nowrap; pointer-events: none; z-index: 100;
+            animation: fadeIn 0.2s ease;
+        }
+        .owner-tip::after {
+            content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+            border: 5px solid transparent; border-top-color: rgba(0,0,0,0.7);
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(5px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
         .customer-card { 
             background: #ffffff; border: 1.5px solid var(--m-border); border-radius: 12px; 
@@ -79,19 +94,14 @@
         .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
         .cust-info { display: flex; align-items: center; gap: 8px; }
         .cust-name { font-weight: bold; color: var(--m-text); }
-        
-        /* 优化点3：张数颜色改为奶黄色区分 */
         .cust-count { background: var(--m-yellow-act); color: #7c6d4d; border: 1px solid #d1bf96; border-radius: 12px; padding: 1px 8px; font-size: 11px; }
         
-        /* 批次分隔样式 */
         .batch-sep { color: var(--m-danger); font-weight: bold; margin: 0 4px; font-size: 14px; align-self: center; }
 
         .tag-box { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
         .tag { background: var(--m-blue-main); color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; cursor: pointer; }
 
-        /* 功能按钮美化 */
         .copy-btn { font-size: 11px; background: #f0f0f0; border-radius: 4px; padding: 2px 6px; cursor: pointer; color: #888; border: 1px solid #ddd; }
-        .copy-btn:active { background: #e0e0e0; }
 
         input { padding: 10px; border: 1px solid var(--m-border); border-radius: 8px; font-size: 14px; background: #fffcf9; }
         button { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
@@ -126,7 +136,7 @@
 <div class="main-container">
     <div class="section-box pool-box">
         <h4>
-            <span>🔢 数字表 (多选模式)</span>
+            <span>🔢 数字表(多选模式)</span>
             <span class="copy-btn" onclick="copyRemaining()">复制剩余号码</span>
         </h4>
         <div class="scroll-area">
@@ -143,8 +153,8 @@
 <script>
     let customers = []; 
     let selectedNums = [];
+    let tipTimer = null; // 用于控制气泡自动消失
 
-    // 辅助函数：一键复制文本
     function copyText(text) {
         const textarea = document.createElement("textarea");
         textarea.value = text;
@@ -155,7 +165,6 @@
         alert("已复制到剪贴板！");
     }
 
-    // 优化点1：复制剩余号码
     function copyRemaining() {
         const total = parseInt(document.getElementById('totalNum').value) || 0;
         const soldNums = customers.flatMap(c => c.nums.flat());
@@ -167,18 +176,32 @@
         copyText(`剩余号码 [${remaining.length}个]：\n${remaining.join(', ')}`);
     }
 
-    // 优化点2：复制单名顾客号码
+    // 优化点：修改为可爱的文案
     function copyCustomerNums(idx) {
         const c = customers[idx];
         if(c.nums.length === 0) return;
         const formatted = c.nums.map(batch => batch.join(' ')).join(' | ');
-        copyText(`👤 ${c.name} 成功扣到：\n${formatted}`);
+        copyText(`${c.name}的成绩单(  •̀ω•́  )ｷﾘｯ\n${formatted}`);
     }
 
-    // 优化点5：点击已售数字查看拥有者
-    function showOwner(num) {
+    // 优化点：气泡提示逻辑
+    function showOwnerTip(event, num) {
         const owner = customers.find(c => c.nums.flat().includes(num));
-        if(owner) alert(`这个号码属于：${owner.name}`);
+        if(!owner) return;
+        
+        // 移除现有的所有气泡
+        const oldTips = document.querySelectorAll('.owner-tip');
+        oldTips.forEach(t => t.remove());
+
+        const tip = document.createElement('div');
+        tip.className = 'owner-tip';
+        tip.innerText = `拥有者: ${owner.name}`;
+        
+        event.currentTarget.appendChild(tip);
+
+        // 2秒后自动消失
+        clearTimeout(tipTimer);
+        tipTimer = setTimeout(() => tip.remove(), 2000);
     }
 
     function initSystem() {
@@ -193,7 +216,7 @@
         const input = document.getElementById('custInput');
         const name = input.value.trim();
         if(!name) return;
-        customers.unshift({ name: name, nums: [] }); // nums 现在是二维数组 [ [1,2], [5,6] ]
+        customers.unshift({ name: name, nums: [] });
         input.value = '';
         renderAll();
     }
@@ -205,10 +228,8 @@
         renderAll();
     }
 
-    // 优化点4：分批记录逻辑
     function bindToCustomer(index) {
         if(selectedNums.length === 0) return;
-        // 每一批内部还是进行升序排列
         const newBatch = [...selectedNums].sort((a,b) => a-b);
         customers[index].nums.push(newBatch);
         selectedNums = [];
@@ -217,10 +238,7 @@
 
     function unbindNumber(custIdx, batchIdx, num) {
         customers[custIdx].nums[batchIdx] = customers[custIdx].nums[batchIdx].filter(n => n !== num);
-        // 如果某一批被删空了，则移除该批次
-        if(customers[custIdx].nums[batchIdx].length === 0) {
-            customers[custIdx].nums.splice(batchIdx, 1);
-        }
+        if(customers[custIdx].nums[batchIdx].length === 0) customers[custIdx].nums.splice(batchIdx, 1);
         renderAll();
     }
 
@@ -254,8 +272,8 @@
             if(!isSold) {
                 div.onclick = () => selectNumber(i);
             } else {
-                // 优化点5：点击已售出的数字显示拥有者
-                div.onclick = () => showOwner(i);
+                // 点击已售数字显示气泡
+                div.onclick = (e) => showOwnerTip(e, i);
             }
             grid.appendChild(div);
         }
@@ -271,16 +289,13 @@
             card.className = `customer-card ${selectedNums.length > 0 ? 'can-receive' : ''}`;
             if(selectedNums.length > 0) card.onclick = () => bindToCustomer(cIdx);
             
-            // 优化点4：分批渲染逻辑
             let tagsHtml = '';
             c.nums.forEach((batch, bIdx) => {
                 const batchHtml = batch.map(n => 
                     `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${bIdx}, ${n})">${n}</span>`
                 ).join('');
                 tagsHtml += batchHtml;
-                if(bIdx < c.nums.length - 1) {
-                    tagsHtml += `<span class="batch-sep">|</span>`;
-                }
+                if(bIdx < c.nums.length - 1) tagsHtml += `<span class="batch-sep">|</span>`;
             });
 
             const totalCount = c.nums.flat().length;
@@ -290,7 +305,7 @@
                     <div class="cust-info">
                         <span class="cust-name">👤 ${c.name}</span>
                         <span class="cust-count">${totalCount} 张</span>
-                        <span class="copy-btn" onclick="event.stopPropagation(); copyCustomerNums(${cIdx})">复制结果</span>
+                        <span class="copy-btn" onclick="event.stopPropagation(); copyCustomerNums(${cIdx})">复制成绩单</span>
                     </div>
                     <span style="color:#b09c9c; font-size:11px;" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除</span>
                 </div>
