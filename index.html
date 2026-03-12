@@ -2,106 +2,190 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>销售编号记数工具</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>kaki记数工具</title>
     <style>
-        body { font-family: sans-serif; padding: 15px; background: #f4f4f9; max-width: 800px; margin: auto; }
-        .controls { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 8px; }
-        .number-card { 
-            height: 55px; display: flex; align-items: center; justify-content: center; 
-            background: #fff; border: 1px solid #007bff; color: #007bff;
-            font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 14px;
+        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --active: #ffc107; --bg: #f8f9fa; }
+        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background: var(--bg); color: #333; }
+        
+        /* 顶部导航与控制 */
+        .toolbar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        .flex-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        
+        .container { display: flex; gap: 15px; flex-direction: column; }
+        @media (min-width: 768px) { .container { flex-direction: row; align-items: flex-start; } }
+
+        /* 左侧数字区 */
+        .section-box { background: white; padding: 15px; border-radius: 12px; flex: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; margin-top: 10px; }
+        
+        .num-card { 
+            height: 48px; border: 2px solid var(--primary); color: var(--primary); 
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; user-select: none;
         }
-        .number-card.sold { background: #e0e0e0; border-color: #bbb; color: #888; text-decoration: line-through; }
-        .log { margin-top: 25px; background: white; padding: 15px; border-radius: 8px; }
-        .btn-group { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
-        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: #007bff; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        input { padding: 8px; width: 60px; border: 1px solid #ccc; border-radius: 4px; }
+        .num-card.selected { background: var(--active); border-color: #e6ac00; color: #000; transform: scale(1.05); z-index: 10; }
+        .num-card.sold { background: #e9ecef; border-color: #dee2e6; color: #adb5bd; text-decoration: line-through; cursor: default; }
+
+        /* 右侧顾客区 */
+        .customer-area { flex: 0 0 340px; }
+        .customer-card { 
+            background: white; border: 2px solid #eee; border-radius: 10px; 
+            padding: 12px; margin-bottom: 10px; position: relative; transition: 0.3s;
+        }
+        .customer-card.can-receive { border-color: var(--success); background: #f0fff4; cursor: pointer; }
+        .customer-card.can-receive:active { transform: scale(0.98); }
+        
+        .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .cust-name { font-weight: bold; color: #333; }
+        .btn-del-cust { color: var(--danger); font-size: 12px; cursor: pointer; border: 1px solid var(--danger); padding: 2px 6px; border-radius: 4px; }
+        
+        .tag-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+        .tag { 
+            background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; 
+            font-size: 13px; cursor: pointer; display: flex; align-items: center;
+        }
+        .tag::after { content: '×'; margin-left: 5px; opacity: 0.7; }
+        .tag:hover { background: var(--danger); }
+
+        /* UI 组件 */
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex: 1; font-size: 14px; }
+        button { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-green { background: var(--success); color: white; }
+        .btn-outline { background: transparent; border: 1px solid #6c757d; color: #6c757d; }
+        #statusMsg { background: #fff3cd; padding: 8px 12px; border-radius: 6px; color: #856404; font-size: 13px; display: none; }
     </style>
 </head>
 <body>
 
-    <h3>📦 销售编号记数工具</h3>
+<div class="toolbar">
+    <div class="flex-row">
+        <span>数字范围: 1 到</span>
+        <input type="number" id="totalNum" value="50" style="max-width: 70px;">
+        <button class="btn-outline" onclick="initNumbers()">重新生成表</button>
+        <button class="btn-outline" onclick="resetSoldStatus()">重置数字状态</button>
+    </div>
+    <div class="flex-row">
+        <input type="text" id="custInput" placeholder="输入顾客名字 (如: 张三)">
+        <button class="btn-green" onclick="addCustomer()">+ 添加顾客</button>
+    </div>
+    <div id="statusMsg"></div>
+</div>
 
-    <div class="controls">
-        <span>设置总数：</span>
-        <input type="number" id="maxNum" value="50" min="1">
-        <div class="btn-group">
-            <button class="btn-primary" onclick="initGrid()">重新生成编号</button>
-            <button class="btn-success" onclick="downloadData()">💾 下载今日登记表</button>
-        </div>
-        <p style="color: #666; font-size: 12px; margin-top:10px;">* 注意：刷新页面会清空数据，请在结束前点击下载保存。</p>
+<div class="container">
+    <div class="section-box">
+        <h4 style="margin:0">🔢 数字表 (点击数字选中)</h4>
+        <div id="numberGrid" class="grid"></div>
     </div>
 
-    <div id="grid" class="grid"></div>
-
-    <div class="log">
-        <h4>📝 已登记清单</h4>
-        <ul id="logList" style="list-style: none; padding: 0; font-size: 14px;"></ul>
+    <div class="customer-area">
+        <h4 style="margin:0 0 10px">👥 顾客列表</h4>
+        <div id="customerList"></div>
     </div>
+</div>
 
-    <script>
-        let salesData = {};
+<script>
+    let customers = []; 
+    let selectedNum = null;
 
-        function initGrid() {
-            if (Object.keys(salesData).length > 0 && !confirm("重新生成会清空当前已记的数据，确定吗？")) return;
-            const max = document.getElementById('maxNum').value;
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            salesData = {};
-            updateLog();
+    function initNumbers() {
+        if(customers.length > 0 && !confirm("此操作将清空所有数据，确定吗？")) return;
+        customers = [];
+        renderAll();
+    }
 
-            for (let i = 1; i <= max; i++) {
-                const div = document.createElement('div');
-                div.className = 'number-card';
-                div.innerText = i;
-                div.id = 'num-' + i;
-                div.onclick = () => markSold(i);
-                grid.appendChild(div);
-            }
+    function resetSoldStatus() {
+        if(!confirm("确定要收回所有已发出的数字吗？顾客名单会保留。")) return;
+        customers.forEach(c => c.nums = []);
+        selectedNum = null;
+        renderAll();
+    }
+
+    function addCustomer() {
+        const input = document.getElementById('custInput');
+        const name = input.value.trim();
+        if(!name) return;
+        customers.push({ name: name, nums: [] });
+        input.value = '';
+        renderAll();
+    }
+
+    function deleteCustomer(idx) {
+        if(!confirm(`确定删除顾客 "${customers[idx].name}" 吗？其占用的数字将退回。`)) return;
+        customers.splice(idx, 1);
+        renderAll();
+    }
+
+    function selectNumber(num) {
+        selectedNum = (selectedNum === num) ? null : num;
+        renderAll();
+    }
+
+    function bindToCustomer(index) {
+        if(!selectedNum) return;
+        customers[index].nums.push(selectedNum);
+        customers[index].nums.sort((a,b) => a-b);
+        selectedNum = null;
+        renderAll();
+    }
+
+    function unbindNumber(custIdx, num) {
+        customers[custIdx].nums = customers[custIdx].nums.filter(n => n !== num);
+        renderAll();
+    }
+
+    function renderAll() {
+        const msg = document.getElementById('statusMsg');
+        if(selectedNum) {
+            msg.style.display = 'block';
+            msg.innerHTML = `🎯 正在为 <b>${selectedNum}号</b> 寻找归属，请点击下方的顾客卡片完成绑定。`;
+        } else {
+            msg.style.display = 'none';
         }
 
-        function markSold(num) {
-            if (salesData[num]) return;
-            const customer = prompt(`【编号 ${num}】是谁扣的？`);
-            if (customer && customer.trim() !== "") {
-                salesData[num] = customer.trim();
-                document.getElementById('num-' + num).classList.add('sold');
-                updateLog();
-            }
+        // 渲染数字表
+        const grid = document.getElementById('numberGrid');
+        const total = parseInt(document.getElementById('totalNum').value) || 0;
+        const soldNums = customers.flatMap(c => c.nums);
+        grid.innerHTML = '';
+        
+        for(let i=1; i<=total; i++) {
+            const div = document.createElement('div');
+            const isSold = soldNums.includes(i);
+            div.className = `num-card ${isSold ? 'sold' : ''} ${selectedNum === i ? 'selected' : ''}`;
+            div.innerText = i;
+            if(!isSold) div.onclick = () => selectNumber(i);
+            grid.appendChild(div);
         }
 
-        function updateLog() {
-            const list = document.getElementById('logList');
-            list.innerHTML = '';
-            const sortedKeys = Object.keys(salesData).sort((a,b) => a-b);
-            if (sortedKeys.length === 0) list.innerHTML = '<li>暂无登记</li>';
-            sortedKeys.forEach(num => {
-                const li = document.createElement('li');
-                li.style.padding = '5px 0';
-                li.style.borderBottom = '1px dashed #eee';
-                li.innerHTML = `✅ <b>${num}号</b> —— 顾客: ${salesData[num]}`;
-                list.appendChild(li);
-            });
-        }
+        // 渲染顾客列表
+        const list = document.getElementById('customerList');
+        list.innerHTML = '';
+        if(customers.length === 0) list.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">暂无顾客，请在上方添加。</p>';
+        
+        customers.forEach((c, cIdx) => {
+            const card = document.createElement('div');
+            card.className = `customer-card ${selectedNum ? 'can-receive' : ''}`;
+            if(selectedNum) card.onclick = () => bindToCustomer(cIdx);
+            
+            let tagsHtml = c.nums.map(n => 
+                `<span class="tag" onclick="event.stopPropagation(); unbindNumber(${cIdx}, ${n})">${n}</span>`
+            ).join('');
 
-        function downloadData() {
-            if (Object.keys(salesData).length === 0) return alert("还没有任何登记数据");
-            let content = "编号,顾客昵称\n";
-            Object.keys(salesData).sort((a,b) => a-b).forEach(num => {
-                content += `${num},${salesData[num]}\n`;
-            });
-            const blob = new Blob(["\ufeff" + content], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `销售统计_${new Date().toLocaleDateString()}.csv`;
-            link.click();
-        }
+            card.innerHTML = `
+                <div class="cust-header">
+                    <span class="cust-name">👤 ${c.name}</span>
+                    <span class="btn-del-cust" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除顾客</span>
+                </div>
+                <div class="tag-box">${tagsHtml || '<small style="color:#bbb">点击绑定数字</small>'}</div>
+            `;
+            list.appendChild(card);
+        });
+    }
 
-        initGrid();
-    </script>
+    renderAll();
+</script>
+
 </body>
 </html>
