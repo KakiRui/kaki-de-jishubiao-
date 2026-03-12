@@ -5,92 +5,195 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>kaki记数工具</title>
     <style>
-        :root { --primary: #007bff; --success: #28a745; --danger: #dc3545; --active: #ffc107; --bg: #f8f9fa; }
-        body { font-family: -apple-system, sans-serif; margin: 0; padding: 15px; background: var(--bg); color: #333; }
+        /* Define Morandi Palette */
+        :root {
+            --m-bg: #f5f3f0;         /* 极淡的灰米色背景 */
+            --m-text: #5a5a5a;       /* 暗灰文字 */
+            --m-border: #dcd7cf;     /* 灰土色边框 */
+            
+            --m-blue-main: #9cb1c0;   /* 莫兰迪灰蓝 (用于数字表、按钮) */
+            --m-green-main: #a3b09c;  /* 莫兰迪豆沙绿 (用于添加按钮) */
+            --m-yellow-act: #e2d2ae;  /* 莫兰迪奶黄 (用于数字选中) */
+            --m-green-rec: #dce0d9;   /* 莫兰迪灰绿白 (用于可接收状态) */
+            --m-danger: #b09c9c;      /* 莫兰迪豆沙红 (用于删除、退号) */
+            
+            --m-card-bg: #ffffff;
+        }
+
+        body { 
+            font-family: -apple-system, 'Noto Sans SC', sans-serif; 
+            margin: 0; padding: 15px; 
+            background: var(--m-bg); 
+            color: var(--m-text); 
+        }
         
-        /* 顶部导航与控制 */
-        .toolbar { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 15px; }
-        .flex-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+        /* 顶部工具栏 - 优化布局 */
+        .toolbar { 
+            background: var(--m-card-bg); 
+            padding: 18px; border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(90,90,90,0.05); 
+            margin-bottom: 18px; 
+        }
+        .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
         
-        .container { display: flex; gap: 15px; flex-direction: column; }
+        /* 数字输入对齐 */
+        .num-range-label { font-size: 14px; color: #7a7a7a; }
+        input[type="number"] { 
+            padding: 10px; border: 1px solid var(--m-border); border-radius: 8px; 
+            width: 70px; text-align: center; font-size: 14px; background: #fffcf9;
+        }
+
+        /* 按钮组 - 布局优化 */
+        .button-group { 
+            display: flex; gap: 10px; width: 100%; justify-content: space-between; 
+            border-top: 1px solid #f0edeb; padding-top: 12px; margin-top: 5px;
+        }
+        .button-group button { flex: 1; margin: 0; }
+
+        .container { display: flex; gap: 18px; flex-direction: column; }
         @media (min-width: 768px) { .container { flex-direction: row; align-items: flex-start; } }
 
-        /* 左侧数字区 */
-        .section-box { background: white; padding: 15px; border-radius: 12px; flex: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 8px; margin-top: 10px; }
-        
-        .num-card { 
-            height: 48px; border: 2px solid var(--primary); color: var(--primary); 
-            display: flex; align-items: center; justify-content: center; font-weight: bold;
-            border-radius: 8px; cursor: pointer; transition: 0.2s; user-select: none;
+        /* 左侧数字区 - 莫兰迪蓝 */
+        .section-box { 
+            background: var(--m-card-bg); 
+            padding: 18px; border-radius: 12px; 
+            flex: 1; box-shadow: 0 2px 12px rgba(90,90,90,0.03); 
         }
-        .num-card.selected { background: var(--active); border-color: #e6ac00; color: #000; transform: scale(1.05); z-index: 10; }
-        .num-card.sold { background: #e9ecef; border-color: #dee2e6; color: #adb5bd; text-decoration: line-through; cursor: default; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(48px, 1fr)); gap: 10px; margin-top: 12px; }
+        
+        /* 数字卡片 - 莫兰迪蓝 */
+        .num-card { 
+            height: 48px; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
+            display: flex; align-items: center; justify-content: center; font-weight: 500;
+            border-radius: 8px; cursor: pointer; transition: 0.2s; user-select: none;
+            background: rgba(156, 177, 192, 0.05); /* 淡淡的蓝底 */
+        }
+        /* 数字选中 - 莫兰迪黄 */
+        .num-card.selected { 
+            background: var(--m-yellow-act); 
+            border-color: #d1bf96; 
+            color: #7c6d4d; 
+            transform: scale(1.03); z-index: 10; 
+            box-shadow: 0 4px 10px rgba(226,210,174,0.4);
+        }
+        .num-card.sold { 
+            background: #e9e7e4; border-color: #d8d3cd; color: #b0adb0; 
+            text-decoration: line-through; cursor: default; opacity: 0.7;
+        }
 
         /* 右侧顾客区 */
         .customer-area { flex: 0 0 340px; }
         .customer-card { 
-            background: white; border: 2px solid #eee; border-radius: 10px; 
-            padding: 12px; margin-bottom: 10px; position: relative; transition: 0.3s;
+            background: var(--m-card-bg); border: 1.5px solid var(--m-border); border-radius: 10px; 
+            padding: 15px; margin-bottom: 12px; position: relative; transition: 0.3s;
+            box-shadow: 0 2px 8px rgba(90,90,90,0.02);
         }
-        .customer-card.can-receive { border-color: var(--success); background: #f0fff4; cursor: pointer; }
-        .customer-card.can-receive:active { transform: scale(0.98); }
+        /* 可接收数字状态 - 莫兰迪灰绿 */
+        .customer-card.can-receive { 
+            border-color: var(--m-green-main); 
+            background: var(--m-green-rec); 
+            cursor: pointer; 
+            box-shadow: 0 4px 12px rgba(163, 176, 156, 0.2);
+        }
         
-        .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .cust-name { font-weight: bold; color: #333; }
-        .btn-del-cust { color: var(--danger); font-size: 12px; cursor: pointer; border: 1px solid var(--danger); padding: 2px 6px; border-radius: 4px; }
+        .cust-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .cust-name { font-weight: bold; color: var(--m-text); font-size: 15px; }
         
-        .tag-box { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+        /* 删除顾客 - 莫兰迪豆沙红 */
+        .btn-del-cust { 
+            color: var(--m-danger); font-size: 11px; cursor: pointer; 
+            border: 1px solid var(--m-danger); padding: 3px 8px; border-radius: 6px; 
+            opacity: 0.8; transition: 0.2s;
+        }
+        .btn-del-cust:hover { opacity: 1; background: rgba(176,156,156,0.1); }
+        
+        /* 选中数字标签 - 莫兰迪灰蓝 */
+        .tag-box { display: flex; flex-wrap: wrap; gap: 7px; min-height: 24px; }
         .tag { 
-            background: var(--primary); color: white; padding: 4px 10px; border-radius: 6px; 
+            background: var(--m-blue-main); color: white; padding: 5px 12px; border-radius: 6px; 
             font-size: 13px; cursor: pointer; display: flex; align-items: center;
+            font-weight: 500; transition: 0.2s;
         }
-        .tag::after { content: '×'; margin-left: 5px; opacity: 0.7; }
-        .tag:hover { background: var(--danger); }
+        .tag::after { content: '×'; margin-left: 6px; opacity: 0.6; font-size: 14px;}
+        /* 退号悬停 - 变豆沙红 */
+        .tag:hover { background: var(--m-danger); box-shadow: 0 2px 6px rgba(176,156,156,0.3); }
 
-        /* UI 组件 */
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; flex: 1; font-size: 14px; }
-        button { padding: 10px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; }
-        .btn-blue { background: var(--primary); color: white; }
-        .btn-green { background: var(--success); color: white; }
-        .btn-outline { background: transparent; border: 1px solid #6c757d; color: #6c757d; }
-        #statusMsg { background: #fff3cd; padding: 8px 12px; border-radius: 6px; color: #856404; font-size: 13px; display: none; }
+        /* 通用 UI 组件 */
+        input[type="text"] { 
+            padding: 12px; border: 1px solid var(--m-border); border-radius: 8px; flex: 1; font-size: 14px; 
+            background: #fffcf9; color: var(--m-text);
+        }
+        button { 
+            padding: 11px 18px; border: none; border-radius: 8px; cursor: pointer; 
+            font-weight: bold; font-size: 14px; transition: 0.2s; letter-spacing: 0.5px;
+        }
+        button:active { transform: translateY(1px); }
+
+        /* 顶部按钮 - 灰蓝 outline */
+        .btn-outline { 
+            background: transparent; border: 1.5px solid var(--m-blue-main); color: var(--m-blue-main); 
+            font-weight: 500;
+        }
+        .btn-outline:hover { background: rgba(156,177,192,0.1); }
+
+        /* 添加顾客 - 豆沙绿 */
+        .btn-green { 
+            background: var(--m-green-main); color: white; 
+            box-shadow: 0 4px 10px rgba(163, 176, 156, 0.3);
+        }
+
+        /* 状态提示条 */
+        #statusMsg { 
+            background: var(--m-yellow-act); 
+            padding: 10px 15px; border-radius: 8px; 
+            color: #7c6d4d; font-size: 13px; font-weight: 500;
+            display: none; margin-bottom: 15px; 
+            border: 1px solid #d1bf96;
+            box-shadow: 0 2px 8px rgba(226,210,174,0.2);
+        }
+
+        h4 { color: #8a8a8a; font-weight: 600; font-size: 16px; margin-top: 0; margin-bottom: 12px;}
     </style>
 </head>
 <body>
 
 <div class="toolbar">
+    <div class="flex-row" style="margin-bottom: 18px;">
+        <span class="num-range-label">数字范围: 1 到</span>
+        <input type="number" id="totalNum" value="50">
+        </div>
     <div class="flex-row">
-        <span>数字范围: 1 到</span>
-        <input type="number" id="totalNum" value="50" style="max-width: 70px;">
+        <input type="text" id="custInput" placeholder="输入顾客名字...">
+        <button class="btn-green" onclick="addCustomer()">+ 添加顾客</button>
+    </div>
+    
+    <div class="button-group">
         <button class="btn-outline" onclick="initNumbers()">重新生成表</button>
         <button class="btn-outline" onclick="resetSoldStatus()">重置数字状态</button>
     </div>
-    <div class="flex-row">
-        <input type="text" id="custInput" placeholder="输入顾客名字 (如: 张三)">
-        <button class="btn-green" onclick="addCustomer()">+ 添加顾客</button>
-    </div>
-    <div id="statusMsg"></div>
 </div>
+
+<div id="statusMsg"></div>
 
 <div class="container">
     <div class="section-box">
-        <h4 style="margin:0">🔢 数字表 (点击数字选中)</h4>
+        <h4>🔢 数字表</h4>
         <div id="numberGrid" class="grid"></div>
     </div>
 
     <div class="customer-area">
-        <h4 style="margin:0 0 10px">👥 顾客列表</h4>
+        <h4>👥 顾客列表</h4>
         <div id="customerList"></div>
     </div>
 </div>
 
 <script>
+    // 逻辑部分保持不变
     let customers = []; 
     let selectedNum = null;
 
     function initNumbers() {
-        if(customers.length > 0 && !confirm("此操作将清空所有数据，确定吗？")) return;
+        if(customers.length > 0 && !confirm("此操作将清空所有数据（包括顾客），确定吗？")) return;
         customers = [];
         renderAll();
     }
@@ -112,7 +215,7 @@
     }
 
     function deleteCustomer(idx) {
-        if(!confirm(`确定删除顾客 "${customers[idx].name}" 吗？其占用的数字将退回。`)) return;
+        if(!confirm(`确定删除顾客 "${customers[idx].name}" 吗？其占用的数字将退回池中。`)) return;
         customers.splice(idx, 1);
         renderAll();
     }
@@ -124,6 +227,12 @@
 
     function bindToCustomer(index) {
         if(!selectedNum) return;
+        // Check if number is already held by THIS customer (prevent duplicates)
+        if (customers[index].nums.includes(selectedNum)) {
+             selectedNum = null;
+             renderAll();
+             return;
+        }
         customers[index].nums.push(selectedNum);
         customers[index].nums.sort((a,b) => a-b);
         selectedNum = null;
@@ -131,6 +240,7 @@
     }
 
     function unbindNumber(custIdx, num) {
+        // Find customer and remove the number
         customers[custIdx].nums = customers[custIdx].nums.filter(n => n !== num);
         renderAll();
     }
@@ -144,7 +254,6 @@
             msg.style.display = 'none';
         }
 
-        // 渲染数字表
         const grid = document.getElementById('numberGrid');
         const total = parseInt(document.getElementById('totalNum').value) || 0;
         const soldNums = customers.flatMap(c => c.nums);
@@ -159,10 +268,9 @@
             grid.appendChild(div);
         }
 
-        // 渲染顾客列表
         const list = document.getElementById('customerList');
         list.innerHTML = '';
-        if(customers.length === 0) list.innerHTML = '<p style="color:#999; text-align:center; padding:20px;">暂无顾客，请在上方添加。</p>';
+        if(customers.length === 0) list.innerHTML = '<p style="color:#aba7a4; text-align:center; padding:30px; font-size:14px; background:#faf9f7; border-radius:8px;">暂无顾客。请在上方输入名字并点“添加”。</p>';
         
         customers.forEach((c, cIdx) => {
             const card = document.createElement('div');
@@ -178,7 +286,7 @@
                     <span class="cust-name">👤 ${c.name}</span>
                     <span class="btn-del-cust" onclick="event.stopPropagation(); deleteCustomer(${cIdx})">删除顾客</span>
                 </div>
-                <div class="tag-box">${tagsHtml || '<small style="color:#bbb">点击绑定数字</small>'}</div>
+                <div class="tag-box">${tagsHtml || '<small style="color:#d0ccc6">点击上方数字以绑定...</small>'}</div>
             `;
             list.appendChild(card);
         });
