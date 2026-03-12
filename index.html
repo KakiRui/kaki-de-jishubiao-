@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>销售编号记数工具</title>
+    <style>
+        body { font-family: sans-serif; padding: 15px; background: #f4f4f9; max-width: 800px; margin: auto; }
+        .controls { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); gap: 8px; }
+        .number-card { 
+            height: 55px; display: flex; align-items: center; justify-content: center; 
+            background: #fff; border: 1px solid #007bff; color: #007bff;
+            font-weight: bold; cursor: pointer; border-radius: 5px; font-size: 14px;
+        }
+        .number-card.sold { background: #e0e0e0; border-color: #bbb; color: #888; text-decoration: line-through; }
+        .log { margin-top: 25px; background: white; padding: 15px; border-radius: 8px; }
+        .btn-group { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+        button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        input { padding: 8px; width: 60px; border: 1px solid #ccc; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <h3>📦 销售编号记数工具</h3>
+
+    <div class="controls">
+        <span>设置总数：</span>
+        <input type="number" id="maxNum" value="50" min="1">
+        <div class="btn-group">
+            <button class="btn-primary" onclick="initGrid()">重新生成编号</button>
+            <button class="btn-success" onclick="downloadData()">💾 下载今日登记表</button>
+        </div>
+        <p style="color: #666; font-size: 12px; margin-top:10px;">* 注意：刷新页面会清空数据，请在结束前点击下载保存。</p>
+    </div>
+
+    <div id="grid" class="grid"></div>
+
+    <div class="log">
+        <h4>📝 已登记清单</h4>
+        <ul id="logList" style="list-style: none; padding: 0; font-size: 14px;"></ul>
+    </div>
+
+    <script>
+        let salesData = {};
+
+        function initGrid() {
+            if (Object.keys(salesData).length > 0 && !confirm("重新生成会清空当前已记的数据，确定吗？")) return;
+            const max = document.getElementById('maxNum').value;
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            salesData = {};
+            updateLog();
+
+            for (let i = 1; i <= max; i++) {
+                const div = document.createElement('div');
+                div.className = 'number-card';
+                div.innerText = i;
+                div.id = 'num-' + i;
+                div.onclick = () => markSold(i);
+                grid.appendChild(div);
+            }
+        }
+
+        function markSold(num) {
+            if (salesData[num]) return;
+            const customer = prompt(`【编号 ${num}】是谁扣的？`);
+            if (customer && customer.trim() !== "") {
+                salesData[num] = customer.trim();
+                document.getElementById('num-' + num).classList.add('sold');
+                updateLog();
+            }
+        }
+
+        function updateLog() {
+            const list = document.getElementById('logList');
+            list.innerHTML = '';
+            const sortedKeys = Object.keys(salesData).sort((a,b) => a-b);
+            if (sortedKeys.length === 0) list.innerHTML = '<li>暂无登记</li>';
+            sortedKeys.forEach(num => {
+                const li = document.createElement('li');
+                li.style.padding = '5px 0';
+                li.style.borderBottom = '1px dashed #eee';
+                li.innerHTML = `✅ <b>${num}号</b> —— 顾客: ${salesData[num]}`;
+                list.appendChild(li);
+            });
+        }
+
+        function downloadData() {
+            if (Object.keys(salesData).length === 0) return alert("还没有任何登记数据");
+            let content = "编号,顾客昵称\n";
+            Object.keys(salesData).sort((a,b) => a-b).forEach(num => {
+                content += `${num},${salesData[num]}\n`;
+            });
+            const blob = new Blob(["\ufeff" + content], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `销售统计_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        }
+
+        initGrid();
+    </script>
+</body>
+</html>
