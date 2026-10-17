@@ -161,6 +161,45 @@
             --m-remove-bg: rgba(92, 74, 58, 0.56);
         }
 
+        :root[data-theme="brownie"] {
+            --m-bg: #f4ebe5;
+            --m-text: #4c3b34;
+            --m-border: #c6afa4;
+            --m-blue-main: #8d6a5e;
+            --m-green-main: #78584d;
+            --m-yellow-act: #dcc8bd;
+            --m-green-rec: #eee2dc;
+            --m-danger: #8b5c51;
+            --m-card: #fff9f5;
+            --m-panel: #ebddd6;
+            --m-input: #fffbf8;
+            --m-chip: #e5d7d0;
+            --m-muted: #7c6860;
+            --m-soft: #9a867d;
+            --m-btn: #f1e6e0;
+            --m-sort: #dfd4cd;
+            --m-sort-border: #c2b0a7;
+            --m-sort-text: #67574f;
+            --m-tip: rgba(255, 250, 247, 0.97);
+            --m-sold: #dbc9c0;
+            --m-sold-border: #cbb8ae;
+            --m-sold-text: #98847b;
+            --m-footer: #ad988f;
+            --m-status: #f1e5df;
+            --m-badge: #e6d5cd;
+            --m-warn-bg: #ead7d1;
+            --m-warn-text: #80564d;
+            --m-warn-border: #d5b9b1;
+            --m-divider: #e2d4cd;
+            --m-tag-hover: #bea095;
+            --m-upload-bg: #fff9f5;
+            --m-mini: #f2e7e1;
+            --m-modal: #fff9f5;
+            --m-shadow: rgba(69, 50, 43, 0.12);
+            --m-on-accent: #fff9f5;
+            --m-remove-bg: rgba(69, 50, 43, 0.58);
+        }
+
         /* 暗黑模式：数字卡明暗对比加强 */
         :root[data-theme="dark"] .num-card {
             background: #1a2025;
@@ -321,6 +360,7 @@
         :root[data-theme="pinkblue"] .tag {
             background: #fdeef5;
             color: #7a5666;
+            box-shadow: inset 0 0 0 1px #dcb3c7;
         }
         :root[data-theme="pinkblue"] .tag:hover {
             background: #f8dce8;
@@ -432,7 +472,7 @@
         :root[data-theme="caramel"] .tag {
             background: #ecd8b5;
             color: #694b2c;
-            border: 1px solid #d9bd8a;
+            box-shadow: inset 0 0 0 1px #d9bd8a;
         }
         :root[data-theme="caramel"] .tag:hover {
             background: #e2c89e;
@@ -458,6 +498,119 @@
         }
         :root[data-theme="caramel"] .ai-image-viewer {
             background: rgba(67, 48, 30, 0.74);
+        }
+
+        /* 布朗尼：复古灰调可可、米棕与深巧克力棕 */
+        :root[data-theme="brownie"] body {
+            background:
+                radial-gradient(circle at 15% 10%, rgba(176, 142, 128, 0.22), transparent 32%),
+                linear-gradient(145deg, #f4ebe5 0%, #e7d8cf 50%, #d8c6bd 100%);
+            background-attachment: fixed;
+        }
+        :root[data-theme="brownie"] .num-card {
+            background: #faf3ee;
+            border-color: #c7b0a6;
+            color: #7a6056;
+        }
+        :root[data-theme="brownie"] .num-card.selected {
+            background: #dcc8bd;
+            border-color: #bda397;
+            color: #4c3b34;
+        }
+        :root[data-theme="brownie"] .num-card.sold {
+            background: #dbc9c0;
+            border-color: #cbb8ae;
+            color: #98847b;
+        }
+        :root[data-theme="brownie"] .btn-clear {
+            background: #f0e5df !important;
+            color: #6d584f !important;
+            border: 1px solid #ceb9af !important;
+        }
+        :root[data-theme="brownie"] .tab {
+            background: #e6d8d1;
+            color: #756159;
+            border: 1px solid transparent;
+        }
+        :root[data-theme="brownie"] .tab.active {
+            background: #78584d;
+            color: #fff9f5;
+            border-color: #62463d;
+            box-shadow: 0 2px 8px rgba(69, 50, 43, 0.22);
+        }
+        :root[data-theme="brownie"] .add-tab-btn {
+            background: #fff9f5;
+            color: #88665b;
+            border-color: #bda196;
+        }
+        :root[data-theme="brownie"] .sort-btn {
+            background: #dfd4cd;
+            color: #67574f;
+            border: 1px solid #c2b0a7;
+        }
+        :root[data-theme="brownie"] .ai-status {
+            background: #f1e5df;
+            border: 1px solid #d8c4ba;
+            color: #624c43;
+        }
+        :root[data-theme="brownie"] .ai-num {
+            background: #ecdfd8;
+            color: #74594e;
+            border: 1px solid #d5c1b7;
+        }
+        :root[data-theme="brownie"] .ai-num.warn {
+            background: #ead7d1;
+            color: #80564d;
+            border-color: #d5b9b1;
+        }
+        :root[data-theme="brownie"] .api-config,
+        :root[data-theme="brownie"] details.prompt-box,
+        :root[data-theme="brownie"] .ai-switch,
+        :root[data-theme="brownie"] .ai-trace-box,
+        :root[data-theme="brownie"] .ai-record-box,
+        :root[data-theme="brownie"] .ai-preview-card {
+            background: #fff9f5;
+            border-color: #c6afa4;
+        }
+        :root[data-theme="brownie"] .api-toggle,
+        :root[data-theme="brownie"] .mini-btn {
+            background: #f2e7e1;
+            border-color: #d2bdb3;
+            color: #6b564c;
+        }
+        :root[data-theme="brownie"] .customer-card.can-receive {
+            background: #f5e9e3;
+            border-color: #b99687;
+        }
+        :root[data-theme="brownie"] .tag {
+            background: #dbc8be;
+            color: #5b433a;
+            box-shadow: inset 0 0 0 1px #c5aa9d;
+        }
+        :root[data-theme="brownie"] .tag:hover {
+            background: #cfb8ae;
+        }
+        :root[data-theme="brownie"] .theme-option.active {
+            background: #f4e9e3;
+            border-color: #c4a89c;
+        }
+        :root[data-theme="brownie"] .theme-btn {
+            background: #fff9f5;
+            border-color: #ccb3a8;
+        }
+        :root[data-theme="brownie"] .theme-modal-bg {
+            background: rgba(57, 42, 37, 0.26);
+        }
+        :root[data-theme="brownie"] .ai-badge {
+            background: #e6d5cd;
+            color: #735a50;
+        }
+        :root[data-theme="brownie"] .ai-image-seq,
+        :root[data-theme="brownie"] .ai-image-quality {
+            background: rgba(72, 51, 44, 0.86);
+        }
+        :root[data-theme="brownie"] .ai-image-viewer {
+            background: rgba(44, 32, 28, 0.77);
         }
 
         body { 
@@ -500,6 +653,8 @@
             padding: 18px;
             width: 280px;
             max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
             box-shadow: 0 8px 30px rgba(0,0,0,0.2);
         }
         .theme-modal h4 { margin: 0 0 12px 0; color: var(--m-muted); font-size: 14px; }
@@ -725,6 +880,7 @@
         <div class="theme-option" id="theme-dark" onclick="changeTheme('dark')">暗黑模式 <span>灰蓝深色</span></div>
         <div class="theme-option" id="theme-pinkblue" onclick="changeTheme('pinkblue')">盐砂糖 <span>柔和粉蓝</span></div>
         <div class="theme-option" id="theme-caramel" onclick="changeTheme('caramel')">焦糖布蕾 <span>奶黄暖棕</span></div>
+        <div class="theme-option" id="theme-brownie" onclick="changeTheme('brownie')">布朗尼 <span>暖米棕调</span></div>
         <button class="theme-close" onclick="closeThemeModal()">关闭</button>
     </div>
 </div>
@@ -942,7 +1098,8 @@
         document.getElementById('theme-dark').classList.toggle('active', current === 'dark');
         document.getElementById('theme-pinkblue').classList.toggle('active', current === 'pinkblue');
         document.getElementById('theme-caramel').classList.toggle('active', current === 'caramel');
-        const themeIcons = { dark: '🖤', pinkblue: '🩵', caramel: '💛' };
+        document.getElementById('theme-brownie').classList.toggle('active', current === 'brownie');
+        const themeIcons = { dark: '🖤', pinkblue: '🩵', caramel: '💛', brownie: '🤎' };
         document.getElementById('themeToggleBtn').textContent = themeIcons[current] || '🤍';
     }
     function changeTheme(theme) {
